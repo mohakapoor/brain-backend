@@ -194,14 +194,41 @@ Set-Cookie: session_id=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=
 }
 ```
 
+### 4.4 Get Current User (Me)
+Verifies the active session cookie and returns the logged-in user's profile. Used by frontend on app load/refresh to restore auth state.
+
+- **Method:** `GET`
+- **Path:** `/api_brain/auth/me`
+- **Auth Required:** Yes (`session_id` cookie)
+
+#### Request Headers
+```http
+Cookie: session_id=<uuid>
+```
+
+#### Success Response (`200 OK`)
+```json
+{
+  "user": {
+    "id": 1,
+    "username": "mohak",
+    "createdAt": 1772395200
+  }
+}
+```
+
+#### Error Response:
+- `401 Unauthorized`: Session cookie missing, invalid, or expired.
+  ```json
+  { "error": "Unauthorized" }
+  ```
+
 ---
 
 ## 5. Planned Endpoints (Phase 1 Roadmap)
 
-### Auth
-- `GET /api_brain/auth/me` — Verify current session and return user profile.
-
 ### Tasks (Protected by Auth Middleware)
+
 - `GET /api_brain/tasks` — List tasks for authenticated user (incomplete tasks ordered first).
 - `POST /api_brain/tasks` — Create a new task.
 - `PATCH /api_brain/tasks/:id` — Update task title or completion state.
