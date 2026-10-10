@@ -10,5 +10,8 @@
 			"database_name": "brain-dev",
 			"database_id": "94f3e393-d264-42ed-8c4c-9265cff7df17"
 		}
-	]
+	],
+	"vars": {
+		"INVITE_CODE": "brain-secret-key"
+	}
 }

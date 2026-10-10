@@ -5,6 +5,7 @@ interface __BaseEnv_Env {
 	DB: D1Database;
 	CF_ACCOUNT_ID: string;
 	CF_API_KEY: string;
+	INVITE_CODE: string;
 }
 declare namespace Cloudflare {
 	interface GlobalProps {
