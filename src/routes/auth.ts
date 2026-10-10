@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { setCookie } from 'hono/cookie'
+import { setCookie, getCookie, deleteCookie } from 'hono/cookie'
 import { hash, compare } from 'bcrypt-ts'
 
 
@@ -159,6 +159,31 @@ auth.post('/login', async (c) => {
         username: user.username,
       },
     })
+  } catch (err: any) {
+    return c.json({ error: 'Internal server error', details: err.message }, 500)
+  }
+})
+
+// POST /logout
+auth.post('/logout', async (c) => {
+  try {
+    const sessionId = getCookie(c, 'session_id')
+
+    if (sessionId) {
+      // 1. Invalidate session in D1
+      await c.env.DB.prepare('DELETE FROM sessions WHERE id = ?')
+        .bind(sessionId)
+        .run()
+    }
+
+    // 2. Clear cookie from browser
+    deleteCookie(c, 'session_id', {
+      path: '/',
+      secure: true,
+      sameSite: 'Lax',
+    })
+
+    return c.json({ message: 'Logged out successfully' })
   } catch (err: any) {
     return c.json({ error: 'Internal server error', details: err.message }, 500)
   }
