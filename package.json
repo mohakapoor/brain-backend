@@ -4,7 +4,8 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy --minify",
-    "cf-typegen": "wrangler types --env-interface CloudflareBindings"
+    "cf-typegen": "wrangler types --env-interface CloudflareBindings",
+    "db:clean": "wrangler d1 execute brain-dev --remote --command \"DELETE FROM sessions; DELETE FROM tasks; DELETE FROM users;\""
   },
   "dependencies": {
     "bcrypt-ts": "^9.0.2",

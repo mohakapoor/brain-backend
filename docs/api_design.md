@@ -1,0 +1,234 @@
+# Brain Backend API Design & Documentation
+
+Welcome to the **Brain Backend** API specification. This backend powers the Personal Second Brain & Execution System, running on Cloudflare Workers, Hono, and Cloudflare D1.
+
+---
+
+## 1. Base URLs
+
+- **Development:** `https://dev.mohakapoor.in` (or Worker fallback: `https://brain-backend-dev.mohak-kapoor-v.workers.dev`)
+- **Local Dev:** `http://localhost:8787`
+- **Route Prefix:** All endpoints are grouped under `/api_brain`
+
+---
+
+## 2. Authentication Overview
+
+The API uses **Database-backed Session Cookies**:
+- **Cookie Name:** `session_id`
+- **Cookie Properties:** `HttpOnly`, `Secure`, `SameSite: Lax`, `Path: /`
+- **Session Duration:** Configured via environment variable `SESSION_TTL_SECONDS` (default: 7 days / 604,800s).
+- **Session Security:**
+  - The cookie only contains an unguessable opaque UUID (`crypto.randomUUID()`).
+  - No user data or sensitive information is stored in the cookie.
+  - Actual session state lives in Cloudflare D1 `sessions` table.
+  - **Single-Device Policy:** Logging in invalidates any existing sessions for that user.
+  - **Automatic Housekeeping:** Expired sessions are purged from D1 on login.
+
+---
+
+## 3. Base Endpoints
+
+### 3.1 Root Info
+Returns basic API identifier information.
+
+- **Method:** `GET`
+- **Path:** `/api_brain`
+- **Auth Required:** No
+
+#### Response (`200 OK`)
+```json
+{
+  "name": "Brain API"
+}
+```
+
+---
+
+### 3.2 Health Check
+Used by uptime monitoring, CI/CD smoke tests, and container/infrastructure health probes.
+
+- **Method:** `GET`
+- **Path:** `/api_brain/health`
+- **Auth Required:** No
+
+#### Response (`200 OK`)
+```json
+{
+  "status": "ok",
+  "timestamp": "2026-10-10T15:30:00.000Z"
+}
+```
+
+---
+
+## 4. Authentication Endpoints
+
+### 4.1 Register User
+Creates a new user account and immediately issues an active session cookie (auto-login).
+
+- **Method:** `POST`
+- **Path:** `/api_brain/auth/register`
+- **Auth Required:** No (Requires secret `inviteCode`)
+
+#### Request Headers
+```http
+Content-Type: application/json
+```
+
+#### Request Body
+```json
+{
+  "username": "mohak",
+  "password": "mypassword123",
+  "inviteCode": "your-secret-invite-code"
+}
+```
+
+#### Validation Rules:
+- `username`: Minimum 3 characters, stored lowercase & trimmed.
+- `password`: Minimum 6 characters (hashed with `bcrypt-ts`, 10 salt rounds).
+- `inviteCode`: Must match `c.env.INVITE_CODE`.
+
+#### Success Response (`201 Created`)
+**Headers:**
+```http
+Set-Cookie: session_id=<uuid>; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800
+```
+**Body:**
+```json
+{
+  "message": "Registered and logged in successfully",
+  "user": {
+    "id": 1,
+    "username": "mohak"
+  }
+}
+```
+
+#### Error Responses:
+- `400 Bad Request`: Missing fields or validation failure.
+  ```json
+  { "error": "Username, password, and invite code are required" }
+  ```
+- `403 Forbidden`: Invalid invite code.
+  ```json
+  { "error": "Invalid invite code" }
+  ```
+- `409 Conflict`: Username already registered.
+  ```json
+  { "error": "Username already taken" }
+  ```
+
+---
+
+### 4.2 Login
+Authenticates an existing user, terminates any prior sessions for that user (single-device policy), and issues a fresh session cookie.
+
+- **Method:** `POST`
+- **Path:** `/api_brain/auth/login`
+- **Auth Required:** No
+
+#### Request Headers
+```http
+Content-Type: application/json
+```
+
+#### Request Body
+```json
+{
+  "username": "mohak",
+  "password": "mypassword123"
+}
+```
+
+#### Success Response (`200 OK`)
+**Headers:**
+```http
+Set-Cookie: session_id=<uuid>; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800
+```
+**Body:**
+```json
+{
+  "message": "Logged in successfully",
+  "user": {
+    "id": 1,
+    "username": "mohak"
+  }
+}
+```
+
+#### Error Responses:
+- `400 Bad Request`: Missing username or password.
+  ```json
+  { "error": "Username and password are required" }
+  ```
+- `401 Unauthorized`: Invalid credentials (generic to prevent username enumeration).
+  ```json
+  { "error": "Invalid username or password" }
+  ```
+
+---
+
+### 4.3 Logout
+Invalidates the session in Cloudflare D1 and clears the browser cookie.
+
+- **Method:** `POST`
+- **Path:** `/api_brain/auth/logout`
+- **Auth Required:** Optional (reads `session_id` cookie if present)
+
+#### Request Headers
+```http
+Cookie: session_id=<uuid>
+```
+
+#### Success Response (`200 OK`)
+**Headers:**
+```http
+Set-Cookie: session_id=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0
+```
+**Body:**
+```json
+{
+  "message": "Logged out successfully"
+}
+```
+
+---
+
+## 5. Planned Endpoints (Phase 1 Roadmap)
+
+### Auth
+- `GET /api_brain/auth/me` — Verify current session and return user profile.
+
+### Tasks (Protected by Auth Middleware)
+- `GET /api_brain/tasks` — List tasks for authenticated user (incomplete tasks ordered first).
+- `POST /api_brain/tasks` — Create a new task.
+- `PATCH /api_brain/tasks/:id` — Update task title or completion state.
+- `DELETE /api_brain/tasks/:id` — Delete a task.
+
+---
+
+## 6. Testing via Postman / cURL
+
+### Register via cURL:
+```bash
+curl -X POST https://dev.mohakapoor.in/api_brain/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"mohak","password":"mypassword123","inviteCode":"your-invite-code"}' \
+  -c cookies.txt
+```
+
+### Login via cURL:
+```bash
+curl -X POST https://dev.mohakapoor.in/api_brain/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"mohak","password":"mypassword123"}' \
+  -c cookies.txt
+```
+
+### Logout via cURL:
+```bash
+curl -X POST https://dev.mohakapoor.in/api_brain/auth/logout \
+  -b cookies.txt
+```
