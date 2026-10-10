@@ -7,7 +7,38 @@ on:
     branches: [dev]
 
 jobs:
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      should_deploy: ${{ steps.filter.outputs.changes }}
+    steps:
+      - name: get latest code
+        uses: actions/checkout@v4
+
+      - name: check for code changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          predicate-quantifier: 'some-with-excludes'
+          filters: |
+            changes:
+              - '!**/*.md'
+              - '!**/*.txt'
+              - '!**/*.png'
+              - '!**/*.jpg'
+              - '!**/*.jpeg'
+              - '!**/*.svg'
+              - '!**/*.gif'
+              - '!**/*.ico'
+              - 'src/**'
+              - 'migrations/**'
+              - 'package*.json'
+              - 'wrangler.jsonc'
+              - '.github/workflows/deploy.yml'
+
   deploy:
+    needs: check-changes
+    if: needs.check-changes.outputs.should_deploy == 'true'
     runs-on: ubuntu-latest
     steps: 
       - name: get latest code
@@ -19,12 +50,21 @@ jobs:
           node-version: '22.x'
           cache: 'npm'
 
-      - name: install dependecies
+      - name: install dependencies
         run: npm ci
+
+      - name: type check
+        run: npx tsc --noEmit
+
+      - name: apply database migrations
+
+        run: npx wrangler d1 migrations apply brain-dev --remote
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_KEY }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
 
       - name: deploy worker
         uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CF_API_KEY }}
-          accountId: ${{ vars.CF_ACCOUNT_ID }}
-          preExec: npx wrangler d1 migrations apply brain-dev --remote
+          accountId: ${{ vars.CF_ACCOUNT_ID }}
