@@ -19,17 +19,8 @@ jobs:
         uses: dorny/paths-filter@v3
         id: filter
         with:
-          predicate-quantifier: 'some-with-excludes'
           filters: |
             changes:
-              - '!**/*.md'
-              - '!**/*.txt'
-              - '!**/*.png'
-              - '!**/*.jpg'
-              - '!**/*.jpeg'
-              - '!**/*.svg'
-              - '!**/*.gif'
-              - '!**/*.ico'
               - 'src/**'
               - 'migrations/**'
               - 'package*.json'
