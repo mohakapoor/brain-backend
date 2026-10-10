@@ -1,9 +1,9 @@
 import { Hono } from 'hono'
+import base from './routes/base'
 
-const app = new Hono()
+const app = new Hono<{Bindings: Env}>()
 
-app.get('/', (c) => {
-  return c.text('Hello Mohak!')
-})
+app.route('/', base);
 
-export default app
+export default app;
+
