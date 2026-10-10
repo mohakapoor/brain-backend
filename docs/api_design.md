@@ -326,9 +326,58 @@ Cookie: session_id=<uuid>
 
 ---
 
+### 5.3 Update Task
+Modifies a task's title and/or toggles its completion state. Only the owner of the task can update it.
+
+- **Method:** `PATCH`
+- **Path:** `/api_brain/tasks/:id`
+- **Auth Required:** Yes (`session_id` cookie)
+
+#### Request Headers
+```http
+Content-Type: application/json
+Cookie: session_id=<uuid>
+```
+
+#### Request Body (All fields optional, at least one required)
+```json
+{
+  "title": "Updated title",
+  "completed": true
+}
+```
+
+#### Behavior:
+- Setting `completed: true` sets `completed = 1` and `completed_at = <unix_timestamp>`.
+- Setting `completed: false` resets `completed = 0` and clears `completed_at = null`.
+- `updated_at` is always refreshed to current timestamp.
+
+#### Success Response (`200 OK`)
+```json
+{
+  "message": "Task updated successfully",
+  "task": {
+    "id": 1,
+    "user_id": 1,
+    "title": "Updated title",
+    "completed": 1,
+    "created_at": 1772395200,
+    "updated_at": 1772395600,
+    "completed_at": 1772395600
+  }
+}
+```
+
+#### Error Responses:
+- `400 Bad Request`: Invalid ID or invalid field payload.
+- `401 Unauthorized`: Not logged in.
+- `404 Not Found`: Task does not exist or belongs to another user.
+
+---
+
 ### Remaining Planned Task Endpoints
-- `PATCH /api_brain/tasks/:id` — Update task title or completion state.
 - `DELETE /api_brain/tasks/:id` — Delete a task.
+
 
 
 
