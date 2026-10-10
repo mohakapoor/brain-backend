@@ -1,54 +1,39 @@
 import { Hono } from 'hono'
 import { setCookie, getCookie, deleteCookie } from 'hono/cookie'
 import { hash, compare } from 'bcrypt-ts'
+import { zValidator } from '@hono/zod-validator'
+import { registerSchema, loginSchema } from '../schemas/auth'
 
 
 const auth = new Hono<{ Bindings: Env }>()
 
 // POST /register
-auth.post('/register', async (c) => {
+auth.post('/register', zValidator('json', registerSchema), async (c) => {
   try {
-    const body = await c.req.json()
-    const { username, password, inviteCode } = body
+    const { username, password, inviteCode } = c.req.valid('json')
+    const cleanUsername = username.toLowerCase()
 
-    // 1. Validate input presence
-    if (!username || !password || !inviteCode) {
-      return c.json(
-        { error: 'Username, password, and invite code are required' },
-        400
-      )
-    }
-
-    // 2. Validate invite code against environment variable
+    // 1. Validate invite code against environment variable
     const expectedInviteCode = c.env.INVITE_CODE
     if (inviteCode !== expectedInviteCode) {
       return c.json({ error: 'Invalid invite code' }, 403)
     }
 
-    // Basic length sanity checks
-    if (username.length < 3) {
-      return c.json({ error: 'Username must be at least 3 characters' }, 400)
-    }
-    if (password.length < 6) {
-      return c.json({ error: 'Password must be at least 6 characters' }, 400)
-    }
-
-    // 3. Check if username already exists
+    // 2. Check if username already exists
     const existingUser = await c.env.DB.prepare(
       'SELECT id FROM users WHERE username = ?'
     )
-      .bind(username.trim().toLowerCase())
+      .bind(cleanUsername)
       .first()
 
     if (existingUser) {
       return c.json({ error: 'Username already taken' }, 409)
     }
 
-    // 4. Hash password with bcrypt-ts
+    // 3. Hash password with bcrypt-ts
     const passwordHash = await hash(password, 10)
 
-    // 5. Insert new user into D1
-    const cleanUsername = username.trim().toLowerCase()
+    // 4. Insert new user into D1
     const insertResult = await c.env.DB.prepare(
       'INSERT INTO users (username, password_hash) VALUES (?, ?) RETURNING id, username'
     )
@@ -59,7 +44,7 @@ auth.post('/register', async (c) => {
       return c.json({ error: 'Failed to create user' }, 500)
     }
 
-    // 6. Create session in D1
+    // 5. Create session in D1
     const sessionId = crypto.randomUUID()
     const sessionTtl = Number(c.env.SESSION_TTL_SECONDS)
     const expiresAt = Math.floor(Date.now() / 1000) + sessionTtl
@@ -70,7 +55,7 @@ auth.post('/register', async (c) => {
       .bind(sessionId, insertResult.id, expiresAt)
       .run()
 
-    // 7. Set secure HttpOnly cookie
+    // 6. Set secure HttpOnly cookie
     setCookie(c, 'session_id', sessionId, {
       httpOnly: true,
       secure: true,
@@ -95,16 +80,10 @@ auth.post('/register', async (c) => {
 })
 
 // POST /login
-auth.post('/login', async (c) => {
+auth.post('/login', zValidator('json', loginSchema), async (c) => {
   try {
-    const body = await c.req.json()
-    const { username, password } = body
-
-    if (!username || !password) {
-      return c.json({ error: 'Username and password are required' }, 400)
-    }
-
-    const cleanUsername = username.trim().toLowerCase()
+    const { username, password } = c.req.valid('json')
+    const cleanUsername = username.toLowerCase()
 
     // 1. Fetch user from D1
     const user = await c.env.DB.prepare(
@@ -127,6 +106,7 @@ auth.post('/login', async (c) => {
     await c.env.DB.prepare('DELETE FROM sessions WHERE user_id = ?')
       .bind(user.id)
       .run()
+
 
     // 4. Housekeeping: Clean up expired sessions globally
     await c.env.DB.prepare('DELETE FROM sessions WHERE expires_at < unixepoch()')

@@ -27,6 +27,36 @@ The API uses **Database-backed Session Cookies**:
 
 ---
 
+## 2.1 Request Validation Architecture (Zod)
+
+All JSON request bodies are validated declaratively using **Zod** (`zod` + `@hono/zod-validator`):
+- **Centralized Schemas:** Defined in `src/schemas/auth.ts` and `src/schemas/tasks.ts`.
+- **Pre-execution Gate:** The `zValidator('json', schema)` middleware intercepts invalid payloads before route logic executes.
+- **Automatic Sanitization:** Strings are automatically trimmed of whitespace.
+- **Standardized Error Format (`400 Bad Request`):**
+  When a payload fails validation, Hono returns a structured Zod error response detailing all field violations:
+  ```json
+  {
+    "success": false,
+    "error": {
+      "issues": [
+        {
+          "code": "too_small",
+          "minimum": 3,
+          "type": "string",
+          "inclusive": true,
+          "exact": false,
+          "message": "Username must be at least 3 characters",
+          "path": ["username"]
+        }
+      ],
+      "name": "ZodError"
+    }
+  }
+  ```
+
+---
+
 ## 3. Base Endpoints
 
 ### 3.1 Root Info
