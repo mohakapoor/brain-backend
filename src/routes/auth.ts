@@ -2,8 +2,6 @@ import { Hono } from 'hono'
 import { setCookie } from 'hono/cookie'
 import { hash } from 'bcrypt-ts'
 
-// Session duration: 7 days in seconds
-const SESSION_EXPIRATION_SECONDS = 7 * 24 * 60 * 60
 
 const auth = new Hono<{ Bindings: Env }>()
 
@@ -63,7 +61,8 @@ auth.post('/register', async (c) => {
 
     // 6. Create session in D1
     const sessionId = crypto.randomUUID()
-    const expiresAt = Math.floor(Date.now() / 1000) + SESSION_EXPIRATION_SECONDS
+    const sessionTtl = Number(c.env.SESSION_TTL_SECONDS)
+    const expiresAt = Math.floor(Date.now() / 1000) + sessionTtl
 
     await c.env.DB.prepare(
       'INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)'
@@ -76,7 +75,7 @@ auth.post('/register', async (c) => {
       httpOnly: true,
       secure: true,
       sameSite: 'Lax',
-      maxAge: SESSION_EXPIRATION_SECONDS,
+      maxAge: sessionTtl,
       path: '/',
     })
 

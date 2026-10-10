@@ -58,4 +58,12 @@ jobs:
         uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CF_API_KEY }}
-          accountId: ${{ vars.CF_ACCOUNT_ID }}
+          accountId: ${{ vars.CF_ACCOUNT_ID }}
+          secrets: |
+            INVITE_CODE
+          vars: |
+            SESSION_TTL_SECONDS
+        env:
+          INVITE_CODE: ${{ secrets.INVITE_CODE }}
+          SESSION_TTL_SECONDS: ${{ vars.SESSION_TTL_SECONDS }}
+

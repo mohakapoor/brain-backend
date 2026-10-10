@@ -6,6 +6,7 @@ interface __BaseEnv_Env {
 	CF_ACCOUNT_ID: string;
 	CF_API_KEY: string;
 	INVITE_CODE: string;
+	SESSION_TTL_SECONDS: string;
 }
 declare namespace Cloudflare {
 	interface GlobalProps {
