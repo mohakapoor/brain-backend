@@ -1,0 +1,29 @@
+name : Cloudflare Workers CI
+
+on:
+  push:
+    branches: [dev]
+  pull_request:
+    branches: [dev]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps: 
+      - name: get latest code
+        uses: actions/checkout@v4
+      
+      - name: set up node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: 'npm'
+
+      - name: install dependecies
+        run: npm ci
+
+      - name: deploy worker
+        uses: cloudflare/wrangler-action@v4
+        with:
+          api-token: ${{ secrets.CF_API_KEY }}
+          accountId: ${{ vars.CF_ACCOUNT_ID }}
