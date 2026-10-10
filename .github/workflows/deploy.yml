@@ -27,3 +27,4 @@ jobs:
         with:
           apiToken: ${{ secrets.CF_API_KEY }}
           accountId: ${{ vars.CF_ACCOUNT_ID }}
+          preExec: npx wrangler d1 migrations apply brain-dev --remote
