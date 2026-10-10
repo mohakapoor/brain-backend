@@ -4,8 +4,8 @@ import auth from './routes/auth'
 
 const app = new Hono<{Bindings: Env}>()
 
-app.route('/', base)
-app.route('/api/auth', auth)
+app.route('api_brain/', base)
+app.route('api_brain/auth', auth)
 
 export default app
 

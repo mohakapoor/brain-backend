@@ -11,4 +11,10 @@
 			"database_id": "94f3e393-d264-42ed-8c4c-9265cff7df17"
 		}
 	],
+	"routes": [
+		{
+			"pattern": "dev.mohakapoor.in",
+			"custom_domain": true
+		}
+	]
 }
