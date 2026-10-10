@@ -375,8 +375,30 @@ Cookie: session_id=<uuid>
 
 ---
 
-### Remaining Planned Task Endpoints
-- `DELETE /api_brain/tasks/:id` — Delete a task.
+### 5.4 Delete Task
+Permanently deletes a task. Only the owner of the task can delete it.
+
+- **Method:** `DELETE`
+- **Path:** `/api_brain/tasks/:id`
+- **Auth Required:** Yes (`session_id` cookie)
+
+#### Request Headers
+```http
+Cookie: session_id=<uuid>
+```
+
+#### Success Response (`200 OK`)
+```json
+{
+  "message": "Task deleted successfully"
+}
+```
+
+#### Error Responses:
+- `400 Bad Request`: Invalid ID format.
+- `401 Unauthorized`: Not logged in.
+- `404 Not Found`: Task does not exist or belongs to another user.
+
 
 
 
