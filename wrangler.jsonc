@@ -1,0 +1,14 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "brain-backend-dev",
+	"main": "src/index.ts",
+	"compatibility_date": "2026-10-07",
+	"compatibility_flags": ["nodejs_compat"],
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "brain-dev",
+			"database_id": "94f3e393-d264-42ed-8c4c-9265cff7df17"
+		}
+	]
+}
