@@ -280,10 +280,56 @@ Cookie: session_id=<uuid>
 
 ---
 
+### 5.2 List Tasks
+Fetches all tasks belonging to the authenticated user. Incomplete tasks are strictly ordered above completed tasks; within each category, newest tasks appear first.
+
+- **Method:** `GET`
+- **Path:** `/api_brain/tasks`
+- **Auth Required:** Yes (`session_id` cookie)
+
+#### Request Headers
+```http
+Cookie: session_id=<uuid>
+```
+
+#### Success Response (`200 OK`)
+```json
+{
+  "tasks": [
+    {
+      "id": 2,
+      "user_id": 1,
+      "title": "Unfinished task",
+      "completed": 0,
+      "created_at": 1772395300,
+      "updated_at": 1772395300,
+      "completed_at": null
+    },
+    {
+      "id": 1,
+      "user_id": 1,
+      "title": "Completed task",
+      "completed": 1,
+      "created_at": 1772395200,
+      "updated_at": 1772395250,
+      "completed_at": 1772395250
+    }
+  ]
+}
+```
+
+#### Error Response:
+- `401 Unauthorized`: Not logged in.
+  ```json
+  { "error": "Unauthorized" }
+  ```
+
+---
+
 ### Remaining Planned Task Endpoints
-- `GET /api_brain/tasks` — List tasks for authenticated user (incomplete tasks ordered first).
 - `PATCH /api_brain/tasks/:id` — Update task title or completion state.
 - `DELETE /api_brain/tasks/:id` — Delete a task.
+
 
 
 ---
