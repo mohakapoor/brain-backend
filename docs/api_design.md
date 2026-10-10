@@ -225,14 +225,66 @@ Cookie: session_id=<uuid>
 
 ---
 
-## 5. Planned Endpoints (Phase 1 Roadmap)
+## 5. Tasks Endpoints (Protected by Auth Middleware)
 
-### Tasks (Protected by Auth Middleware)
+All task endpoints require a valid `session_id` cookie. Requests without an active session automatically receive `401 Unauthorized`.
 
+### 5.1 Create Task
+Creates a new task associated with the logged-in user.
+
+- **Method:** `POST`
+- **Path:** `/api_brain/tasks`
+- **Auth Required:** Yes (`session_id` cookie)
+
+#### Request Headers
+```http
+Content-Type: application/json
+Cookie: session_id=<uuid>
+```
+
+#### Request Body
+```json
+{
+  "title": "Build the frontend"
+}
+```
+
+#### Validation Rules:
+- `title`: Must be a non-empty string, maximum 500 characters.
+
+#### Success Response (`201 Created`)
+```json
+{
+  "message": "Task created successfully",
+  "task": {
+    "id": 1,
+    "user_id": 1,
+    "title": "Build the frontend",
+    "completed": 0,
+    "created_at": 1772395200,
+    "updated_at": 1772395200,
+    "completed_at": null
+  }
+}
+```
+
+#### Error Responses:
+- `400 Bad Request`: Missing or invalid `title`.
+  ```json
+  { "error": "Task title is required" }
+  ```
+- `401 Unauthorized`: Not logged in.
+  ```json
+  { "error": "Unauthorized" }
+  ```
+
+---
+
+### Remaining Planned Task Endpoints
 - `GET /api_brain/tasks` — List tasks for authenticated user (incomplete tasks ordered first).
-- `POST /api_brain/tasks` — Create a new task.
 - `PATCH /api_brain/tasks/:id` — Update task title or completion state.
 - `DELETE /api_brain/tasks/:id` — Delete a task.
+
 
 ---
 
