@@ -8,6 +8,8 @@
     "db:clean": "wrangler d1 execute brain-dev --remote --command \"DELETE FROM sessions; DELETE FROM tasks; DELETE FROM users;\""
   },
   "dependencies": {
+    "@hono/swagger-ui": "^0.6.1",
+    "@hono/zod-openapi": "^1.6.3",
     "@hono/zod-validator": "^0.9.1",
     "bcrypt-ts": "^9.0.2",
     "hono": "^4.13.13",
