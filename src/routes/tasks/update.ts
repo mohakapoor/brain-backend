@@ -1,20 +1,75 @@
-import type { Context } from 'hono'
+import { createRoute, type RouteHandler } from '@hono/zod-openapi'
 import type { AuthEnv } from '../../middleware/auth'
+import { TaskIdParamSchema, updateTaskSchema, TaskResponseSchema } from '../../schemas/tasks'
+import { ErrorResponseSchema } from '../../schemas/common'
 import type { Task } from './types'
 
-export const updateHandler = async (c: Context<AuthEnv>) => {
+export const updateTaskRoute = createRoute({
+  tags: ['Tasks'],
+  method: 'patch',
+  path: '/:id',
+  summary: 'Update / Toggle Task',
+  description: 'Updates task title and/or toggles completed status for the authenticated user.',
+  request: {
+    params: TaskIdParamSchema,
+    body: {
+      content: {
+        'application/json': {
+          schema: updateTaskSchema,
+        },
+      },
+      description: 'Fields to update (title, completed)',
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: TaskResponseSchema,
+        },
+      },
+      description: 'Task updated successfully',
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Validation error in request payload or param',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Unauthorized; missing or invalid session',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Task not found or belongs to another user',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Internal server error',
+    },
+  },
+})
+
+export const updateHandler: RouteHandler<typeof updateTaskRoute, AuthEnv> = async (c) => {
   try {
     const user = c.get('user')
-    const taskId = Number(c.req.param('id'))
-
-    if (isNaN(taskId)) {
-      return c.json({ error: 'Invalid task ID' }, 400)
-    }
-
-    const { title, completed } = c.req.valid('json' as never) as {
-      title?: string
-      completed?: boolean
-    }
+    const { id: taskId } = c.req.valid('param')
+    const { title, completed } = c.req.valid('json')
 
     // Ownership check: verify task belongs to authenticated user
     const existingTask = await c.env.DB.prepare(
@@ -50,8 +105,8 @@ export const updateHandler = async (c: Context<AuthEnv>) => {
 
     return c.json({
       message: 'Task updated successfully',
-      task: updatedTask,
-    })
+      task: updatedTask!,
+    }, 200)
   } catch (err: any) {
     return c.json({ error: 'Internal server error', details: err.message }, 500)
   }

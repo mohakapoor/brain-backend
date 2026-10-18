@@ -1,8 +1,44 @@
-import type { Context } from 'hono'
+import { createRoute, type RouteHandler } from '@hono/zod-openapi'
 import type { AuthEnv } from '../../middleware/auth'
+import { TaskListResponseSchema } from '../../schemas/tasks'
+import { ErrorResponseSchema } from '../../schemas/common'
 import type { Task } from './types'
 
-export const listHandler = async (c: Context<AuthEnv>) => {
+export const listTasksRoute = createRoute({
+  tags: ['Tasks'],
+  method: 'get',
+  path: '/',
+  summary: 'List Tasks',
+  description: 'Retrieves all tasks for the authenticated user, ordered incomplete-first, newest-first.',
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: TaskListResponseSchema,
+        },
+      },
+      description: 'List of tasks belonging to authenticated user',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Unauthorized; missing or invalid session',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Internal server error',
+    },
+  },
+})
+
+export const listHandler: RouteHandler<typeof listTasksRoute, AuthEnv> = async (c) => {
   try {
     const user = c.get('user')
 
@@ -18,7 +54,7 @@ export const listHandler = async (c: Context<AuthEnv>) => {
 
     return c.json({
       tasks: results,
-    })
+    }, 200)
   } catch (err: any) {
     return c.json({ error: 'Internal server error', details: err.message }, 500)
   }

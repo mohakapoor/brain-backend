@@ -1,10 +1,64 @@
-import type { Context } from 'hono'
+import { createRoute, type RouteHandler } from '@hono/zod-openapi'
 import type { AuthEnv } from '../../middleware/auth'
+import { createTaskSchema, TaskResponseSchema } from '../../schemas/tasks'
+import { ErrorResponseSchema } from '../../schemas/common'
 import type { Task } from './types'
 
-export const createHandler = async (c: Context<AuthEnv>) => {
+export const createTaskRoute = createRoute({
+  tags: ['Tasks'],
+  method: 'post',
+  path: '/',
+  summary: 'Create Task',
+  description: 'Creates a new todo/execution task for the authenticated user.',
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: createTaskSchema,
+        },
+      },
+      description: 'Task creation payload',
+    },
+  },
+  responses: {
+    201: {
+      content: {
+        'application/json': {
+          schema: TaskResponseSchema,
+        },
+      },
+      description: 'Task created successfully',
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Validation error in request payload',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Unauthorized; missing or invalid session',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Internal server error',
+    },
+  },
+})
+
+export const createHandler: RouteHandler<typeof createTaskRoute, AuthEnv> = async (c) => {
   try {
-    const { title } = c.req.valid('json' as never) as { title: string }
+    const { title } = c.req.valid('json')
     const user = c.get('user')
 
     // Insert task into D1
