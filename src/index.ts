@@ -3,7 +3,7 @@ import { swaggerUI } from '@hono/swagger-ui'
 import { corsMiddleware } from './middleware/cors'
 import base from './routes/base/index'
 import auth from './routes/auth/index'
-import tasks from './routes/tasks'
+import tasks from './routes/tasks/index'
 
 const app = new OpenAPIHono<{Bindings: Env}>()
 
