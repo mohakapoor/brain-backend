@@ -1,7 +1,7 @@
 import { OpenAPIHono } from '@hono/zod-openapi'
 import { swaggerUI } from '@hono/swagger-ui'
 import { corsMiddleware } from './middleware/cors'
-import base from './routes/base'
+import base from './routes/base/index'
 import auth from './routes/auth'
 import tasks from './routes/tasks'
 
