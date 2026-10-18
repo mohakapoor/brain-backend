@@ -3,6 +3,7 @@ import { getCookie, deleteCookie } from 'hono/cookie'
 import { MessageResponseSchema, ErrorResponseSchema } from '../../schemas/common'
 
 export const logoutRoute = createRoute({
+  tags: ['Auth'],
   method: 'post',
   path: '/logout',
   summary: 'User Logout',

@@ -8,6 +8,7 @@ export const BaseResponseSchema = z.object({
 })
 
 export const baseRoute = createRoute({
+  tags: ['Base'],
   method: 'get',
   path: '/',
   summary: 'API Root Info',

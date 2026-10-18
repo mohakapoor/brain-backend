@@ -5,6 +5,7 @@ import { registerSchema, AuthResponseSchema } from '../../schemas/auth'
 import { ErrorResponseSchema } from '../../schemas/common'
 
 export const registerRoute = createRoute({
+  tags: ['Auth'],
   method: 'post',
   path: '/register',
   summary: 'Register User',

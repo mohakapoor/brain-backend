@@ -5,6 +5,7 @@ import { loginSchema, AuthResponseSchema } from '../../schemas/auth'
 import { ErrorResponseSchema } from '../../schemas/common'
 
 export const loginRoute = createRoute({
+  tags: ['Auth'],
   method: 'post',
   path: '/login',
   summary: 'User Login',

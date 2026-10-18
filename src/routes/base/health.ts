@@ -12,6 +12,7 @@ export const HealthResponseSchema = z.object({
 })
 
 export const healthRoute = createRoute({
+  tags: ['Base'],
   method: 'get',
   path: '/health',
   summary: 'Health Check',

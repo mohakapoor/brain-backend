@@ -4,6 +4,7 @@ import { MeResponseSchema } from '../../schemas/auth'
 import { ErrorResponseSchema } from '../../schemas/common'
 
 export const meRoute = createRoute({
+  tags: ['Auth'],
   method: 'get',
   path: '/me',
   summary: 'Active Session Profile',
