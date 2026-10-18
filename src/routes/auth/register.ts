@@ -1,14 +1,71 @@
-import type { Context } from 'hono'
+import { createRoute, type RouteHandler } from '@hono/zod-openapi'
 import { setCookie } from 'hono/cookie'
 import { hash } from 'bcrypt-ts'
+import { registerSchema, AuthResponseSchema } from '../../schemas/auth'
+import { ErrorResponseSchema } from '../../schemas/common'
 
-export const registerHandler = async (c: Context<{ Bindings: Env }>) => {
+export const registerRoute = createRoute({
+  method: 'post',
+  path: '/register',
+  summary: 'Register User',
+  description: 'Creates a new user account via secret invite code and issues an active session cookie.',
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: registerSchema,
+        },
+      },
+      description: 'Registration credentials with invite code',
+    },
+  },
+  responses: {
+    201: {
+      content: {
+        'application/json': {
+          schema: AuthResponseSchema,
+        },
+      },
+      description: 'User registered and logged in successfully',
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Validation error in request payload',
+    },
+    403: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Invalid invite code',
+    },
+    409: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Username already taken',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Internal server error',
+    },
+  },
+})
+
+export const registerHandler: RouteHandler<typeof registerRoute, { Bindings: Env }> = async (c) => {
   try {
-    const { username, password, inviteCode } = c.req.valid('json' as never) as {
-      username: string
-      password: string
-      inviteCode: string
-    }
+    const { username, password, inviteCode } = c.req.valid('json')
     const cleanUsername = username.toLowerCase()
 
     // 1. Validate invite code against environment variable

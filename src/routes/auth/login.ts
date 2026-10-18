@@ -1,13 +1,63 @@
-import type { Context } from 'hono'
+import { createRoute, type RouteHandler } from '@hono/zod-openapi'
 import { setCookie } from 'hono/cookie'
 import { compare } from 'bcrypt-ts'
+import { loginSchema, AuthResponseSchema } from '../../schemas/auth'
+import { ErrorResponseSchema } from '../../schemas/common'
 
-export const loginHandler = async (c: Context<{ Bindings: Env }>) => {
+export const loginRoute = createRoute({
+  method: 'post',
+  path: '/login',
+  summary: 'User Login',
+  description: 'Authenticates user credentials, enforces single-device session invalidation, and issues an active session cookie.',
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: loginSchema,
+        },
+      },
+      description: 'Login credentials (username and password)',
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: AuthResponseSchema,
+        },
+      },
+      description: 'Logged in successfully',
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Validation error in request payload',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Invalid username or password',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Internal server error',
+    },
+  },
+})
+
+export const loginHandler: RouteHandler<typeof loginRoute, { Bindings: Env }> = async (c) => {
   try {
-    const { username, password } = c.req.valid('json' as never) as {
-      username: string
-      password: string
-    }
+    const { username, password } = c.req.valid('json')
     const cleanUsername = username.toLowerCase()
 
     // 1. Fetch user from D1
@@ -62,7 +112,7 @@ export const loginHandler = async (c: Context<{ Bindings: Env }>) => {
         id: user.id,
         username: user.username,
       },
-    })
+    }, 200)
   } catch (err: any) {
     return c.json({ error: 'Internal server error', details: err.message }, 500)
   }
