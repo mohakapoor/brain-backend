@@ -1,15 +1,5 @@
-import { createRoute, z, type RouteHandler } from '@hono/zod-openapi'
-
-export const HealthResponseSchema = z.object({
-  status: z.string().openapi({
-    example: 'ok',
-    description: 'Service health status',
-  }),
-  timestamp: z.string().openapi({
-    example: '2026-10-18T15:30:00.000Z',
-    description: 'Current ISO 8601 server timestamp',
-  }),
-})
+import { createRoute, type RouteHandler } from '@hono/zod-openapi'
+import { HealthResponseSchema } from '../../schemas/base'
 
 export const healthRoute = createRoute({
   tags: ['Base'],

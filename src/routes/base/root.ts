@@ -1,11 +1,5 @@
-import { createRoute, z, type RouteHandler } from '@hono/zod-openapi'
-
-export const BaseResponseSchema = z.object({
-  name: z.string().openapi({
-    example: 'Brain API',
-    description: 'The name of the API service',
-  }),
-})
+import { createRoute, type RouteHandler } from '@hono/zod-openapi'
+import { BaseResponseSchema } from '../../schemas/base'
 
 export const baseRoute = createRoute({
   tags: ['Base'],
