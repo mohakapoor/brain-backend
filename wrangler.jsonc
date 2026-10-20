@@ -1,5 +1,6 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "brain-backend",
 	"main": "src/index.ts",
 	"compatibility_date": "2026-10-07",
 	"compatibility_flags": ["nodejs_compat"],
@@ -31,7 +32,7 @@
 			],
 			"routes": [
 				{
-					"pattern": "api.mohakapoor.in",
+					"pattern": "gateway.mohakapoor.in",
 					"custom_domain": true
 				}
 			]
