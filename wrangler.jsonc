@@ -1,20 +1,40 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "brain-backend-dev",
 	"main": "src/index.ts",
 	"compatibility_date": "2026-10-07",
 	"compatibility_flags": ["nodejs_compat"],
-	"d1_databases": [
-		{
-			"binding": "DB",
-			"database_name": "brain-dev",
-			"database_id": "94f3e393-d264-42ed-8c4c-9265cff7df17"
+	"env": {
+		"dev": {
+			"name": "brain-backend-dev",
+			"d1_databases": [
+				{
+					"binding": "DB",
+					"database_name": "brain-dev",
+					"database_id": "94f3e393-d264-42ed-8c4c-9265cff7df17"
+				}
+			],
+			"routes": [
+				{
+					"pattern": "dev.mohakapoor.in",
+					"custom_domain": true
+				}
+			]
+		},
+		"prod": {
+			"name": "brain-backend-prod",
+			"d1_databases": [
+				{
+					"binding": "DB",
+					"database_name": "brain-prod",
+					"database_id": "92551797-d4ce-4d7a-9f2f-ad879ac57ef0"
+				}
+			],
+			"routes": [
+				{
+					"pattern": "api.mohakapoor.in",
+					"custom_domain": true
+				}
+			]
 		}
-	],
-	"routes": [
-		{
-			"pattern": "dev.mohakapoor.in",
-			"custom_domain": true
-		}
-	]
+	}
 }
