@@ -1,35 +1,26 @@
-name : Cloudflare Workers CI
+name: Cloudflare Workers CI
 
 on:
   push:
     branches: [dev, prod]
+    paths:
+      - 'src/**'
+      - 'migrations/**'
+      - 'package*.json'
+      - 'wrangler.jsonc'
+      - '.github/workflows/deploy.yml'
   pull_request:
     branches: [dev, prod]
+    paths:
+      - 'src/**'
+      - 'migrations/**'
+      - 'package*.json'
+      - 'wrangler.jsonc'
+      - '.github/workflows/deploy.yml'
 
 jobs:
-  check-changes:
-    runs-on: ubuntu-latest
-    outputs:
-      should_deploy: ${{ steps.filter.outputs.changes }}
-    steps:
-      - name: get latest code
-        uses: actions/checkout@v4
-
-      - name: check for code changes
-        uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            changes:
-              - 'src/**'
-              - 'migrations/**'
-              - 'package*.json'
-              - 'wrangler.jsonc'
-              - '.github/workflows/deploy.yml'
-
   deploy:
-    needs: check-changes
-    if: github.event_name == 'push' && needs.check-changes.outputs.should_deploy == 'true'
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps: 
       - name: get latest code
@@ -66,4 +57,3 @@ jobs:
         env:
           INVITE_CODE: ${{ secrets.INVITE_CODE }}
           SESSION_TTL_SECONDS: ${{ vars.SESSION_TTL_SECONDS }}
-
