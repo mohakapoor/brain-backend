@@ -1,8 +1,6 @@
 import { cors } from 'hono/cors'
 
 const ALLOWED_ORIGINS = [
-  'https://mohakapoor.in',
-  'https://www.mohakapoor.in',
   'https://brain.mohakapoor.in',
   'https://dev.mohakapoor.in',
   'http://localhost:5173',
@@ -13,19 +11,13 @@ const ALLOWED_ORIGINS = [
 /**
  * CORS Middleware
  *
- * Permits cross-origin requests from mohakapoor.in, brain.mohakapoor.in,
- * all *.mohakapoor.in subdomains, and local dev ports with HttpOnly cookie support.
+ * Enforces strict origin whitelist (brain.mohakapoor.in, dev.mohakapoor.in, local dev),
+ * enables credentials for session cookies, and caches preflight OPTIONS for 24 hours.
  */
 export const corsMiddleware = cors({
   origin: (origin) => {
     if (!origin) return null
-    if (
-      ALLOWED_ORIGINS.includes(origin) ||
-      origin.endsWith('.mohakapoor.in')
-    ) {
-      return origin
-    }
-    return null
+    return ALLOWED_ORIGINS.includes(origin) ? origin : null
   },
   credentials: true,
   allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
