@@ -2,7 +2,9 @@ import { cors } from 'hono/cors'
 
 const ALLOWED_ORIGINS = [
   'https://brain.mohakapoor.in',
+  'https://www.brain.mohakapoor.in',
   'https://dev.brain.mohakapoor.in',
+  'https://www.dev.brain.mohakapoor.in',
   'https://dev.mohakapoor.in',
   'http://localhost:5173',
   'http://localhost:3000',
