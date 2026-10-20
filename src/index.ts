@@ -23,6 +23,8 @@ app.doc('/api_brain/openapi.json', {
 
 app.get('/api_brain/docs', swaggerUI({ url: '/api_brain/openapi.json' }))
 
+app.notFound((c) => c.json({ error: 'Endpoint not found' }, 404))
+
 export default app
 
 
