@@ -1,5 +1,5 @@
 import { createMiddleware } from 'hono/factory'
-import { getCookie } from 'hono/cookie'
+import { getSessionCookie } from '../utils/cookie'
 
 export type AuthUser = {
   id: number
@@ -21,7 +21,7 @@ export type AuthEnv = {
  * If missing or expired, responds immediately with 401 Unauthorized.
  */
 export const requireAuth = createMiddleware<AuthEnv>(async (c, next) => {
-  const sessionId = getCookie(c, 'session_id')
+  const sessionId = getSessionCookie(c)
 
   if (!sessionId) {
     return c.json({ error: 'Unauthorized' }, 401)

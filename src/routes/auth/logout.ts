@@ -1,5 +1,5 @@
 import { createRoute, type RouteHandler } from '@hono/zod-openapi'
-import { getCookie, deleteCookie } from 'hono/cookie'
+import { getSessionCookie, clearSessionCookie } from '../../utils/cookie'
 import { MessageResponseSchema, ErrorResponseSchema } from '../../schemas/common'
 
 export const logoutRoute = createRoute({
@@ -30,7 +30,7 @@ export const logoutRoute = createRoute({
 
 export const logoutHandler: RouteHandler<typeof logoutRoute, { Bindings: Env }> = async (c) => {
   try {
-    const sessionId = getCookie(c, 'session_id')
+    const sessionId = getSessionCookie(c)
 
     if (sessionId) {
       // 1. Invalidate session in D1
@@ -40,11 +40,7 @@ export const logoutHandler: RouteHandler<typeof logoutRoute, { Bindings: Env }> 
     }
 
     // 2. Clear cookie from browser
-    deleteCookie(c, 'session_id', {
-      path: '/',
-      secure: true,
-      sameSite: 'Lax',
-    })
+    clearSessionCookie(c)
 
     return c.json({ message: 'Logged out successfully' }, 200)
   } catch (err: any) {

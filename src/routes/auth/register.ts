@@ -1,6 +1,6 @@
 import { createRoute, type RouteHandler } from '@hono/zod-openapi'
-import { setCookie } from 'hono/cookie'
 import { hash } from 'bcrypt-ts'
+import { setSessionCookie } from '../../utils/cookie'
 import { registerSchema, AuthResponseSchema } from '../../schemas/auth'
 import { ErrorResponseSchema } from '../../schemas/common'
 
@@ -111,14 +111,8 @@ export const registerHandler: RouteHandler<typeof registerRoute, { Bindings: Env
       .bind(sessionId, insertResult.id, expiresAt)
       .run()
 
-    // 6. Set secure HttpOnly cookie
-    setCookie(c, 'session_id', sessionId, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'Lax',
-      maxAge: sessionTtl,
-      path: '/',
-    })
+    // 6. Set secure session cookie
+    setSessionCookie(c, sessionId, sessionTtl)
 
     return c.json(
       {

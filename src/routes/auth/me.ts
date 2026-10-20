@@ -1,5 +1,5 @@
 import { createRoute, type RouteHandler } from '@hono/zod-openapi'
-import { getCookie } from 'hono/cookie'
+import { getSessionCookie } from '../../utils/cookie'
 import { MeResponseSchema } from '../../schemas/auth'
 import { ErrorResponseSchema } from '../../schemas/common'
 
@@ -39,7 +39,7 @@ export const meRoute = createRoute({
 
 export const meHandler: RouteHandler<typeof meRoute, { Bindings: Env }> = async (c) => {
   try {
-    const sessionId = getCookie(c, 'session_id')
+    const sessionId = getSessionCookie(c)
 
     if (!sessionId) {
       return c.json({ error: 'Unauthorized' }, 401)
